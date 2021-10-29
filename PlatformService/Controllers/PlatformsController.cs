@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlatformService.Data;
 using PlatformService.Dtos;
 using PlatformService.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -25,7 +26,7 @@ namespace PlatformService.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms()
         {
-            Debug.WriteLine("--> Getting platforms...");
+            Console.WriteLine("--> Getting platforms...");
             var platformItem = _platformRepo.GetAllPlatforms();
             return Ok(_mapper.Map<IEnumerable<PlatformReadDto>>(platformItem));
         }
@@ -33,7 +34,7 @@ namespace PlatformService.Controllers
         [HttpGet("{id}", Name = "GetPlatformById")]
         public ActionResult<PlatformReadDto> GetPlatformById(int id)
         {
-            Debug.WriteLine("--> Getting platform by id");
+            Console.WriteLine("--> Getting platform by id");
             var platformItem = _platformRepo.GetPlatformById(id);
             if(platformItem != null)
                 return Ok(_mapper.Map<PlatformReadDto>(platformItem));

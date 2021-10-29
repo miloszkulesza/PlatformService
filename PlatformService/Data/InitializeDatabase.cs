@@ -21,7 +21,7 @@ namespace PlatformService.Data
         {
             if (!context.Platforms.Any())
             {
-                Debug.WriteLine("--> Seeding data...");
+                Console.WriteLine("--> Seeding data...");
                 context.Platforms.AddRange(
                     new Platform()
                     {
