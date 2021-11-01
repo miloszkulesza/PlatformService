@@ -14,7 +14,7 @@ spec:
         spec:
             containers:
                 - name: commandsservice
-                  image: miloszkulesza/platformservice:latest
+                  image: miloszkulesza/commandsservice:latest
 ---
 apiVersion: v1
 kind: Service
