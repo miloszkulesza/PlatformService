@@ -1,4 +1,7 @@
+using CommandsService.AsyncDataServices;
 using CommandsService.Data;
+using CommandsService.EventProcessing;
+using CommandsService.SyncDataServices.Grpc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -12,20 +15,35 @@ namespace CommandsService
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IConfiguration Configuration { get; }
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMem"));
-            services.AddScoped<ICommandRepository, CommandRepository>();
+            if (_env.IsProduction())
+            {
+                Console.WriteLine("--> Using MSSQL DB");
+                services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("CommandsConn")));
+            }
+            else
+            {
+                Console.WriteLine("--> Using InMemory DB");
+                services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("InMemory"));
+            }
+            services.AddScoped<ICommandRepository, CommandRepository>();            
             services.AddControllers();
+
+            services.AddSingleton<IEventProcessor, EventProcessor>();
+            services.AddHostedService<MessageBusSubscriber>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddScoped<IPlatformDataClient, PlatformDataClient>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CommandsService", Version = "v1" });
@@ -42,7 +60,7 @@ namespace CommandsService
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CommandsService v1"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
@@ -52,6 +70,8 @@ namespace CommandsService
             {
                 endpoints.MapControllers();
             });
+
+            PrepDb.PrepPopulation(app, _env.IsProduction());
         }
     }
 }

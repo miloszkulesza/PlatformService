@@ -57,7 +57,7 @@ namespace PlatformService.Data
                 context.SaveChanges();
             }
             else
-                Debug.WriteLine("--> Platforms table is not empty");
+                Console.WriteLine("--> Platforms table is not empty");
         }
     }
 }
